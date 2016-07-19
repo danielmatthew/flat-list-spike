@@ -25,14 +25,20 @@
     <header>
       <h1>Container Test</h1>
     </header>
-    <main ng-controller="OpenContainerCtrl">
-      <div ng-repeat="i in data.entries" ng-bind-html="htmlData(i)"></div>
+    <main ng-controller="OpenContainerCtrl" dnd-list="data.entries">
+      <div
+        ng-repeat="i in data.entries"
+        ng-bind-html="htmlData(i)"
+        dnd-draggable="i"
+        dnd-moved="data.entries.splice($index, 1)"
+        dnd-effect-allowed="move"></div>
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/1.4.0/angular-drag-and-drop-lists.min.js"></script>
     <script>
-      angular.module('divvy', ['ngSanitize'])
+      angular.module('divvy', ['ngSanitize', 'dndLists'])
         .controller('OpenContainerCtrl', function($scope, $sce) {
 
           $scope.data = {
