@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Container Test</title>
+    <style type="text/css">
+      .container {
+        background-color: #ebebeb;
+        border: 1px solid #333;
+        padding: 1em;
+      }
+      .section {
+        background-color: #ebebeb;
+        padding: 0.5em;
+      }
+      .section--open {
+        border-top: 3px solid red;
+      }
+      .section--close {
+        border-bottom: 3px solid blue;
+        margin-bottom: 1em;
+      }
+    </style>
+  </head>
+  <body ng-app="divvy">
+    <header>
+      <h1>Container Test</h1>
+    </header>
+    <main ng-controller="OpenContainerCtrl">
+      <div ng-repeat="i in data.entries" ng-bind-html="htmlData(i)"></div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
+    <script>
+      angular.module('divvy', ['ngSanitize'])
+        .controller('OpenContainerCtrl', function($scope, $sce) {
+
+          $scope.data = {
+          entries: [
+            {
+              id: 'i1',
+              type: 'items',
+              resource: 'A2 further pure',
+            },
+            {
+              id: 'i2',
+              type: 'items',
+              resource: 'A2 further pure'
+            },
+            // open 1 section
+            {
+              id: 'x',
+              type: 'sectionOpener',
+              sectionDepth: 0,
+            },
+            {
+              id: 's1',
+              type: 'sections',
+              resource: 'Section 1',
+              sectionDepth: 1
+            },
+            {
+              id: 'i1.1',
+              type: 'items',
+              resource: 'A2 further pure',
+              sectionDepth: 1
+            },
+            {
+              type: 'sectionOpener',
+              sectionDepth: 1,
+            },
+            // open 1 section
+            {
+              id: 's1.1',
+              type: 'sections',
+              resource: 'Section 1.1',
+              sectionDepth: 2,
+            },
+            {
+              id: 'i1.1.1',
+              type: 'items',
+              resource: 'A2 further pure',
+              sectionDepth: 2
+            },
+            // open 1 section
+            {
+              type: 'sectionOpener',
+              sectionDepth: 2,
+            },
+            {
+              id: 's1.1.1',
+              type: 'sections',
+              resource: 'Section 1.1.1',
+              sectionDepth: 3,
+            },
+            {
+              id: 'i1.1.1.1',
+              type: 'items',
+              resource: 'A2 further pure',
+              sectionDepth: 3
+            },
+            {
+              id: 'i1.1.1.2',
+              type: 'items',
+              resource: 'A2 further pure',
+              sectionDepth: 3,
+            },
+            // close 3 sections
+            {
+              type: 'sectionCloser',
+              sectionDepth: 2,
+            },
+            {
+              type: 'sectionCloser',
+              sectionDepth: 1,
+            },
+            {
+              type: 'sectionCloser',
+              sectionDepth: 0,
+            },
+            // open 1 section
+            {
+              type: 'sectionOpener',
+              sectionDepth: 0,
+            },
+            {
+              id: 's2',
+              type: 'sections',
+              resource: 'Section 2',
+              sectionDepth: 1
+            },
+            {
+              id: 'i2.1',
+              type: 'items',
+              resource: 'A2 furt  her pure',
+              sectionDepth: 1,
+            },
+            {
+              type: 'sectionCloser',
+              sectionDepth: 0,
+            }
+          ]
+        };
+
+         const wrapInDiv = (item, countSectionsOpenedOrToOpen = 0) => {
+          if(countSectionsOpenedOrToOpen === 0) {
+            return markupGenerator(item);
+          } else if(countSectionsOpenedOrToOpen > 0) {
+            return `<div class="section">
+              ${wrapInDiv(item, countSectionsOpenedOrToOpen-1)}
+            </div>`;
+          }
+         };
+
+         const markupGenerator = (item) => {
+          switch (item.type) {
+            case 'sectionOpener':
+              return '<div class="section--open"></div>';
+            case 'sectionCloser':
+              return '<div class="section--close"></div>';
+            case 'sections':
+              return `<section class="section"></section>`;
+            case 'items':
+              return `<article class="item">${item.resource}</article>`;
+          }
+         };
+
+         const wrapItem = (item) => wrapInDiv(item, (item.sectionDepth || 0));
+         $scope.htmlData = wrapItem;
+
+
+
+          console.log($scope.data);
+        })
+        .directive('sectionWrapper', function() {
+          const html = '<div>lol</div>';
+
+          return {
+            restrict: 'A',
+            replace: true,
+            scope: {
+              count: '@'
+            },
+            link: function(scope, element) {
+              wrapInDiv = (html, count) => {
+                if(count === 0) {
+                  return html;
+                } else {
+                  return `<div>${wrapInDiv(html, count-1)}</div>`;
+                }
+              }
+            }
+          };
+        })
+        .directive('openContainer', function() {
+          return {
+            restrict: 'E',
+            replace: false,
+            scope: {
+              count: '@'
+            },
+            link: function(scope, element, attrs) {
+              const count = scope.count;
+              let markup = '';
+
+              for (var i = 0; i < scope.count; i++) {
+                markup += `<div class="container" data-level=${i}><ul>
+                <li>list 1</li>
+                <li>list 2</li>
+                <li>list 3</li>
+                <li>list 4</li>
+                <li>list 5</li>
+                </ul>`;
+              }
+              console.log(markup);
+              element.html(markup);
+            }
+          };
+        })
+        .directive('closeContainer', function() {
+          return {
+            restrict: 'E',
+            replace: false,
+            scope: {
+              count: '@'
+            },
+            link: function(scope, element, attrs) {
+              const count = scope.count;
+              let markup = '';
+
+              for (var i = count; i > 0; i--) {
+                markup += `</div data-level=${i-1}>`;
+              }
+              console.log(markup);
+
+              element.html(markup);
+            }
+          };
+        });
+    </script>
+  </body>
+</html>
