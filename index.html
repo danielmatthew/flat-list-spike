@@ -7,6 +7,10 @@
         border: 1px solid #333;
         padding: 1em;
       }
+      .section-wrapper {
+        width: 98%;
+        margin: auto;
+      }
       .section {
         background-color: #ebebeb;
         width: 98%;
@@ -14,13 +18,18 @@
       }
       article {
         background-color: white;
+        margin: 0.5em 0;
         padding: 1em;
-        border-bottom: 1px solid #ebebeb;
+        box-shadow: 0 1px 0 0 rgba(0,0,0,.2);
       }
       .section--open {
         border-top: 3px solid red;
+        display: block;
+        content: '';
       }
-      .section--close {
+      .section--close:after {
+        display: block;
+        content: '';
         border-bottom: 3px solid blue;
         margin-bottom: 1em;
       }
@@ -33,12 +42,11 @@
     <main ng-controller="OpenContainerCtrl" class="container">
       <item-wrapper
         ng-repeat="i in data.entries"
-        count="{{i.sectionDepth}}">
-        <item ng-switch="i.type">
-          <section-opener ng-switch-when="sectionOpener"></section-opener>
-          <section-closer ng-switch-when="sectionCloser"></section-closer>
+        count="{{i.sectionDepth}}"
+        ng-class=itemType(i.type)>
+        <item ng-switch="i.type" >
           <section-body ng-switch-when="sections"></section-body>
-          <resource ng-switch-when="items" resource="i.resource"></resource>
+          <resource ng-switch-when="items" resource="i.resource" class="resource"></resource>
         </item>
       </item-wrapper>
     </main>
@@ -48,126 +56,121 @@
     <script>
       angular.module('divvy', ['ngSanitize'])
         .controller('OpenContainerCtrl', function($scope, $sce) {
-
-          $scope.data = {
-          entries: [
-            {
-              id: 'i1',
-              type: 'items',
-              resource: 'A2 further pure',
-            },
-            {
-              id: 'i2',
-              type: 'items',
-              resource: 'A2 further pure'
-            },
-            // open 1 section
-            {
-              id: 'x',
-              type: 'sectionOpener',
-              sectionDepth: 0,
-            },
-            {
-              id: 's1',
-              type: 'sections',
-              resource: 'Section 1',
-              sectionDepth: 1
-            },
-            {
-              id: 'i1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 1
-            },
-            {
-              type: 'sectionOpener',
-              sectionDepth: 1,
-            },
-            // open 1 section
-            {
-              id: 's1.1',
-              type: 'sections',
-              resource: 'Section 1.1',
-              sectionDepth: 2,
-            },
-            {
-              id: 'i1.1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 2
-            },
-            // open 1 section
-            {
-              type: 'sectionOpener',
-              sectionDepth: 2,
-            },
-            {
-              id: 's1.1.1',
-              type: 'sections',
-              resource: 'Section 1.1.1',
-              sectionDepth: 3,
-            },
-            {
-              id: 'i1.1.1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 3
-            },
-            {
-              id: 'i1.1.1.2',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 3,
-            },
-            // close 3 sections
-            {
-              type: 'sectionCloser',
-              sectionDepth: 2,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 1,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 0,
-            },
-            // open 1 section
-            {
-              type: 'sectionOpener',
-              sectionDepth: 0,
-            },
-            {
-              id: 's2',
-              type: 'sections',
-              resource: 'Section 2',
-              sectionDepth: 1
-            },
-            {
-              id: 'i2.1',
-              type: 'items',
-              resource: 'A2 furt  her pure',
-              sectionDepth: 1,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 0,
+          $scope.itemType = (type) => {
+            console.log(type);
+            switch(type) {
+              case 'sectionOpener':
+                return 'section--open';
+              case 'sectionCloser':
+                return 'section--close';
             }
-          ]
-        };
-
-         // const wrapInDiv = (item, countSectionsOpenedOrToOpen = 0) => {
-         //  if(countSectionsOpenedOrToOpen === 0) {
-         //    return `<item-wrapper ></item-wrapper>`;
-         //  } else if(countSectionsOpenedOrToOpen > 0) {
-         //    return `<item-wrapper >
-         //      ${wrapInDiv(item, countSectionsOpenedOrToOpen-1)}
-         //    </item-wrapper>`;
-         //  }
-         // };
-
-          // const wrapItem = (item) => wrapInDiv(item, (item.sectionDepth || 0));
-          // $scope.htmlData = wrapItem;
+          };
+          $scope.data = {
+            entries: [
+              {
+                id: 'i1',
+                type: 'items',
+                resource: 'A2 further pure',
+              },
+              {
+                id: 'i2',
+                type: 'items',
+                resource: 'A2 further pure'
+              },
+              // open 1 section
+              {
+                id: 'x',
+                type: 'sectionOpener',
+                sectionDepth: 0,
+              },
+              {
+                id: 's1',
+                type: 'sections',
+                resource: 'Section 1',
+                sectionDepth: 1
+              },
+              {
+                id: 'i1.1',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 1
+              },
+              {
+                type: 'sectionOpener',
+                sectionDepth: 1,
+              },
+              // open 1 section
+              {
+                id: 's1.1',
+                type: 'sections',
+                resource: 'Section 1.1',
+                sectionDepth: 2,
+              },
+              {
+                id: 'i1.1.1',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 2
+              },
+              // open 1 section
+              {
+                type: 'sectionOpener',
+                sectionDepth: 2,
+              },
+              {
+                id: 's1.1.1',
+                type: 'sections',
+                resource: 'Section 1.1.1',
+                sectionDepth: 3,
+              },
+              {
+                id: 'i1.1.1.1',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 3
+              },
+              {
+                id: 'i1.1.1.2',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 3,
+              },
+              // close 3 sections
+              {
+                type: 'sectionCloser',
+                sectionDepth: 2,
+              },
+              {
+                type: 'sectionCloser',
+                sectionDepth: 1,
+              },
+              {
+                type: 'sectionCloser',
+                sectionDepth: 0,
+              },
+              // open 1 section
+              {
+                type: 'sectionOpener',
+                sectionDepth: 0,
+              },
+              {
+                id: 's2',
+                type: 'sections',
+                resource: 'Section 2',
+                sectionDepth: 1
+              },
+              {
+                id: 'i2.1',
+                type: 'items',
+                resource: 'A2 furt  her pure',
+                sectionDepth: 1,
+              },
+              {
+                type: 'sectionCloser',
+                sectionDepth: 0,
+              }
+            ]
+            };
         })
         .directive('itemWrapper', function() {
           return {
@@ -179,17 +182,11 @@
             },
             link: function(scope, element, attrs) {
               while (scope.count > 0) {
-                element.wrap('<div class="section"></div>');
+                element.wrap('<div class="section-wrapper"></div>');
                 scope.count--;
               }
             }
           };
-        })
-        .component('sectionOpener', {
-          template: '<div class="section--open"></div>'
-        })
-        .component('sectionCloser', {
-          template: '<div class="section--close"></div>'
         })
         .component('sectionBody', {
           template: '<section class="section"></div>'
@@ -198,20 +195,8 @@
           bindings: {
             resource: '<'
           },
-          template: `<article>{{$ctrl.resource}}</article>`
+          template: `<article><img src="http://placehold.it/50x50/" alt="" />{{$ctrl.resource}}</article>`
         });
-
-              //         switch (scope.type) {
-              //   case 'sectionOpener':
-              //     return element.wrap(`<div class="section--open" data-padding="${scope.count}"></div>`);
-              //   case 'sectionCloser':
-              //     return element.wrap(`<div class="section--close" data-padding="${scope.count}"></div>`);
-              //   case 'sections':
-              //     return element.wrap(`<section class="section" data-padding="${scope.count}"></section>`);
-              //   case 'items':
-              //     return element.wrap(`<article>${scope.resource}</article>`)
-              // }
-
     </script>
   </body>
 </html>
