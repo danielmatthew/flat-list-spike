@@ -9,12 +9,13 @@
       }
       .section {
         background-color: #ebebeb;
-        padding: 0.5em;
+        width: 98%;
+        margin: auto;
       }
       article {
         background-color: white;
         padding: 1em;
-        border: 1px solid #ebebeb;
+        border-bottom: 1px solid #ebebeb;
       }
       .section--open {
         border-top: 3px solid red;
@@ -32,9 +33,13 @@
     <main ng-controller="OpenContainerCtrl" class="container">
       <item-wrapper
         ng-repeat="i in data.entries"
-        type="{{i.type}}"
-        resource="{{i.resource}}"
-        count="{{i.sectionDepth}}">{{i.sectionDepth}}
+        count="{{i.sectionDepth}}">
+        <item ng-switch="i.type">
+          <section-opener ng-switch-when="sectionOpener"></section-opener>
+          <section-closer ng-switch-when="sectionCloser"></section-closer>
+          <section-body ng-switch-when="sections"></section-body>
+          <resource ng-switch-when="items" resource="i.resource"></resource>
+        </item>
       </item-wrapper>
     </main>
 
@@ -177,19 +182,35 @@
                 element.wrap('<div class="section"></div>');
                 scope.count--;
               }
-              switch (scope.type) {
-                case 'sectionOpener':
-                  return element.wrap(`<div class="section--open" data-padding="${scope.count}"></div>`);
-                case 'sectionCloser':
-                  return element.wrap(`<div class="section--close" data-padding="${scope.count}"></div>`);
-                case 'sections':
-                  return element.wrap(`<section class="section" data-padding="${scope.count}"></section>`);
-                case 'items':
-                  return element.wrap(`<article>${scope.resource}</article>`)
-              }
             }
           };
+        })
+        .component('sectionOpener', {
+          template: '<div class="section--open"></div>'
+        })
+        .component('sectionCloser', {
+          template: '<div class="section--close"></div>'
+        })
+        .component('sectionBody', {
+          template: '<section class="section"></div>'
+        })
+        .component('resource', {
+          bindings: {
+            resource: '<'
+          },
+          template: `<article>{{$ctrl.resource}}</article>`
         });
+
+              //         switch (scope.type) {
+              //   case 'sectionOpener':
+              //     return element.wrap(`<div class="section--open" data-padding="${scope.count}"></div>`);
+              //   case 'sectionCloser':
+              //     return element.wrap(`<div class="section--close" data-padding="${scope.count}"></div>`);
+              //   case 'sections':
+              //     return element.wrap(`<section class="section" data-padding="${scope.count}"></section>`);
+              //   case 'items':
+              //     return element.wrap(`<article>${scope.resource}</article>`)
+              // }
 
     </script>
   </body>
