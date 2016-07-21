@@ -45,7 +45,7 @@
         count="{{i.sectionDepth}}"
         ng-class=itemType(i.type)>
         <item ng-switch="i.type" >
-          <section-body ng-switch-when="sections"></section-body>
+          <section-body ng-switch-when="sections" resource="i.resource"></section-body>
           <resource ng-switch-when="items" resource="i.resource" class="resource"></resource>
         </item>
       </item-wrapper>
@@ -95,11 +95,11 @@
                 resource: 'A2 further pure',
                 sectionDepth: 1
               },
+              // open 1 section
               {
                 type: 'sectionOpener',
                 sectionDepth: 1,
               },
-              // open 1 section
               {
                 id: 's1.1',
                 type: 'sections',
@@ -162,7 +162,81 @@
               {
                 id: 'i2.1',
                 type: 'items',
-                resource: 'A2 furt  her pure',
+                resource: 'A2 further pure',
+                sectionDepth: 1,
+              },
+              {
+                id: 'i2.2',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 1,
+              },
+              {
+                id: 'i2.3',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 1,
+              },
+              {
+                id: 'i2.4',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 1,
+              },
+              // open section 2.1
+              {
+                type: 'sectionOpener',
+                sectionDepth: 1
+              },
+              {
+                id: 's2.1',
+                type: 'sections',
+                resource: 'Section 2.1',
+                sectionDepth: 1
+              },
+              {
+                id: 'i2.1.1',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 2,
+              },
+              {
+                id: 'i2.1.2',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 2,
+              },
+              // close section 2.1
+              {
+                type: 'sectionCloser',
+                sectionDepth: 1
+              },
+              // open section 2.2
+              {
+                type: 'sectionOpener',
+                sectionDepth: 1
+              },
+              {
+                id: 's2.2',
+                type: 'sections',
+                resource: 'Section 2.2',
+                sectionDepth: 1
+              },
+              {
+                id: 'i2.2.1',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 2,
+              },
+              {
+                id: 'i2.2.2',
+                type: 'items',
+                resource: 'A2 further pure',
+                sectionDepth: 2,
+              },
+              // close section 2.2
+              {
+                type: 'sectionCloser',
                 sectionDepth: 1,
               },
               {
@@ -189,7 +263,10 @@
           };
         })
         .component('sectionBody', {
-          template: '<section class="section"></div>'
+          bindings: {
+            resource: '<'
+          },
+          template: '<section class="section"><h2>{{$ctrl.resource}}</h2></div>'
         })
         .component('resource', {
           bindings: {
