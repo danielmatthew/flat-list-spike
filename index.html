@@ -14,7 +14,7 @@
       article {
         background-color: white;
         padding: 1em;
-        box-shadow: 0 1px 0 0 rgba(0,0,0,0.2);
+        border: 1px solid #ebebeb;
       }
       .section--open {
         border-top: 3px solid red;
@@ -29,22 +29,19 @@
     <header>
       <h1>Container Test</h1>
     </header>
-    <main ng-controller="OpenContainerCtrl" dnd-list="data.entries" class="container">
-      <div
+    <main ng-controller="OpenContainerCtrl" class="container">
+      <item-wrapper
         ng-repeat="i in data.entries"
-        ng-bind-html="htmlData(i)"
-        dnd-draggable="i"
-        dnd-moved="data.entries.splice($index, 1)"
-        dnd-effect-allowed="move"
-        dnd-disable-if="i.type === 'sectionOpener' || i.type==='sectionCloser'">
-      </div>
+        type="{{i.type}}"
+        resource="{{i.resource}}"
+        count="{{i.sectionDepth}}">{{i.sectionDepth}}
+      </item-wrapper>
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/1.4.0/angular-drag-and-drop-lists.min.js"></script>
     <script>
-      angular.module('divvy', ['ngSanitize', 'dndLists'])
+      angular.module('divvy', ['ngSanitize'])
         .controller('OpenContainerCtrl', function($scope, $sce) {
 
           $scope.data = {
@@ -154,101 +151,46 @@
           ]
         };
 
-         const wrapInDiv = (item, countSectionsOpenedOrToOpen = 0) => {
-          if(countSectionsOpenedOrToOpen === 0) {
-            return markupGenerator(item);
-          } else if(countSectionsOpenedOrToOpen > 0) {
-            return `<div class="section">
-              ${wrapInDiv(item, countSectionsOpenedOrToOpen-1)}
-            </div>`;
-          }
-         };
+         // const wrapInDiv = (item, countSectionsOpenedOrToOpen = 0) => {
+         //  if(countSectionsOpenedOrToOpen === 0) {
+         //    return `<item-wrapper ></item-wrapper>`;
+         //  } else if(countSectionsOpenedOrToOpen > 0) {
+         //    return `<item-wrapper >
+         //      ${wrapInDiv(item, countSectionsOpenedOrToOpen-1)}
+         //    </item-wrapper>`;
+         //  }
+         // };
 
-         const markupGenerator = (item) => {
-          switch (item.type) {
-            case 'sectionOpener':
-              return '<div class="section--open"></div>';
-            case 'sectionCloser':
-              return '<div class="section--close"></div>';
-            case 'sections':
-              return `<section class="section"></section>`;
-            case 'items':
-              return `<article class="item">${item.resource}</article>`;
-          }
-         };
-
-         const wrapItem = (item) => wrapInDiv(item, (item.sectionDepth || 0));
-         $scope.htmlData = wrapItem;
-
-
-
-          console.log($scope.data);
+          // const wrapItem = (item) => wrapInDiv(item, (item.sectionDepth || 0));
+          // $scope.htmlData = wrapItem;
         })
-        .directive('sectionWrapper', function() {
-          const html = '<div>lol</div>';
-
-          return {
-            restrict: 'A',
-            replace: true,
-            scope: {
-              count: '@'
-            },
-            link: function(scope, element) {
-              wrapInDiv = (html, count) => {
-                if(count === 0) {
-                  return html;
-                } else {
-                  return `<div>${wrapInDiv(html, count-1)}</div>`;
-                }
-              }
-            }
-          };
-        })
-        .directive('openContainer', function() {
+        .directive('itemWrapper', function() {
           return {
             restrict: 'E',
-            replace: false,
             scope: {
-              count: '@'
+              type: '@',
+              count: '@',
+              resource: '@'
             },
             link: function(scope, element, attrs) {
-              const count = scope.count;
-              let markup = '';
-
-              for (var i = 0; i < scope.count; i++) {
-                markup += `<div class="container" data-level=${i}><ul>
-                <li>list 1</li>
-                <li>list 2</li>
-                <li>list 3</li>
-                <li>list 4</li>
-                <li>list 5</li>
-                </ul>`;
+              while (scope.count > 0) {
+                element.wrap('<div class="section"></div>');
+                scope.count--;
               }
-              console.log(markup);
-              element.html(markup);
-            }
-          };
-        })
-        .directive('closeContainer', function() {
-          return {
-            restrict: 'E',
-            replace: false,
-            scope: {
-              count: '@'
-            },
-            link: function(scope, element, attrs) {
-              const count = scope.count;
-              let markup = '';
-
-              for (var i = count; i > 0; i--) {
-                markup += `</div data-level=${i-1}>`;
+              switch (scope.type) {
+                case 'sectionOpener':
+                  return element.wrap(`<div class="section--open" data-padding="${scope.count}"></div>`);
+                case 'sectionCloser':
+                  return element.wrap(`<div class="section--close" data-padding="${scope.count}"></div>`);
+                case 'sections':
+                  return element.wrap(`<section class="section" data-padding="${scope.count}"></section>`);
+                case 'items':
+                  return element.wrap(`<article>${scope.resource}</article>`)
               }
-              console.log(markup);
-
-              element.html(markup);
             }
           };
         });
+
     </script>
   </body>
 </html>
