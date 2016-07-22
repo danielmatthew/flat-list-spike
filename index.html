@@ -11,18 +11,24 @@
         width: 98%;
         margin: auto;
       }
-      .section {
+      .odd:last-child {
         background-color: #ebebeb;
+      }
+
+      .even:last-child {
+        background-color: #ffffff;
+      }
+      .section {
+        /*background-color: #ebebeb;*/
         width: 98%;
         margin: auto;
       }
       article {
-        background-color: white;
-        margin: 0.5em 0;
+        /*background-color: white;*/
         padding: 1em;
         box-shadow: 0 1px 0 0 rgba(0,0,0,.2);
       }
-      .section--open {
+      .section--open:before {
         border-top: 3px solid red;
         display: block;
         content: '';
@@ -43,7 +49,7 @@
       <item-wrapper
         ng-repeat="i in data.entries"
         count="{{i.sectionDepth}}"
-        ng-class=itemType(i.type)>
+        ng-class="itemType(i.type)">
         <item ng-switch="i.type" >
           <section-body ng-switch-when="sections" resource="i.resource"></section-body>
           <resource ng-switch-when="items" resource="i.resource" class="resource"></resource>
@@ -192,7 +198,7 @@
                 id: 's2.1',
                 type: 'sections',
                 resource: 'Section 2.1',
-                sectionDepth: 1
+                sectionDepth: 2
               },
               {
                 id: 'i2.1.1',
@@ -255,8 +261,9 @@
               resource: '@'
             },
             link: function(scope, element, attrs) {
+              const oddOrEven = scope.count % 2 === 0 ? "odd" : "even";
               while (scope.count > 0) {
-                element.wrap('<div class="section-wrapper"></div>');
+                element.wrap(`<div class="section-wrapper ${oddOrEven}"></div>`);
                 scope.count--;
               }
             }
