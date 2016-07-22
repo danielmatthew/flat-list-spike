@@ -3,30 +3,29 @@
   <head>
     <title>Container Test</title>
     <style type="text/css">
-      .container {
-        border: 1px solid #333;
-        padding: 1em;
-      }
+
       .section-wrapper {
-        width: 98%;
-        margin: auto;
+        padding: 0 0.5em;
       }
-      .odd:last-child {
+      .section-wrapper:last-child {
+        margin: 0 0.5em;
+
+      }
+      .odd {
         background-color: #ebebeb;
       }
 
-      .even:last-child {
+      .even {
         background-color: #ffffff;
       }
-      .section {
-        /*background-color: #ebebeb;*/
-        width: 98%;
-        margin: auto;
+
+      h2, p {
+        margin: 0;
       }
       article {
-        /*background-color: white;*/
+        background-color: white;
         padding: 1em;
-        box-shadow: 0 1px 0 0 rgba(0,0,0,.2);
+        border: 1px solid #ebebeb;
       }
       .section--open:before {
         border-top: 3px solid red;
@@ -37,7 +36,6 @@
         display: block;
         content: '';
         border-bottom: 3px solid blue;
-        margin-bottom: 1em;
       }
     </style>
   </head>
@@ -51,8 +49,11 @@
         count="{{i.sectionDepth}}"
         ng-class="itemType(i.type)">
         <item ng-switch="i.type" >
-          <section-body ng-switch-when="sections" resource="i.resource"></section-body>
-          <resource ng-switch-when="items" resource="i.resource" class="resource"></resource>
+          <section ng-switch-when="sections" class="section">
+            <h2>{{i.resource}}</h2>
+            <p><i>Lorem ipsum dolor mit asd</i></p>
+          </section>
+          <article ng-switch-when="items" class="resource"><img src="http://placehold.it/50x50/" alt="" />{{i.resource}}</article>
         </item>
       </item-wrapper>
     </main>
@@ -226,7 +227,7 @@
                 id: 's2.2',
                 type: 'sections',
                 resource: 'Section 2.2',
-                sectionDepth: 1
+                sectionDepth: 2
               },
               {
                 id: 'i2.2.1',
@@ -240,11 +241,39 @@
                 resource: 'A2 further pure',
                 sectionDepth: 2,
               },
+              // open section 2.2.1
+              {
+                type: 'sectionOpener',
+                sectionDepth: 2,
+              },
+              {
+                id: 's2.2.2',
+                type: 'sections',
+                resource: 'Section 2.2.2',
+                sectionDepth: 3
+              },
+              {
+                id: '2.2.1.1',
+                type: 'items',
+                resource: 'Deeply Nested',
+                sectionDepth: 3
+              },
+              {
+                id: '2.2.1.1',
+                type: 'items',
+                resource: 'Deeply Nested',
+                sectionDepth: 3
+              },
+              {
+                type: 'sectionCloser',
+                sectionDepth: 2
+              },
               // close section 2.2
               {
                 type: 'sectionCloser',
                 sectionDepth: 1,
               },
+
               {
                 type: 'sectionCloser',
                 sectionDepth: 0,
@@ -261,25 +290,13 @@
               resource: '@'
             },
             link: function(scope, element, attrs) {
-              const oddOrEven = scope.count % 2 === 0 ? "odd" : "even";
               while (scope.count > 0) {
+                const oddOrEven = scope.count % 2 === 0 ? "even" : "odd";
                 element.wrap(`<div class="section-wrapper ${oddOrEven}"></div>`);
                 scope.count--;
               }
             }
           };
-        })
-        .component('sectionBody', {
-          bindings: {
-            resource: '<'
-          },
-          template: '<section class="section"><h2>{{$ctrl.resource}}</h2></div>'
-        })
-        .component('resource', {
-          bindings: {
-            resource: '<'
-          },
-          template: `<article><img src="http://placehold.it/50x50/" alt="" />{{$ctrl.resource}}</article>`
         });
     </script>
   </body>
