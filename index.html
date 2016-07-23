@@ -3,25 +3,49 @@
   <head>
     <title>Container Test</title>
     <style type="text/css">
-      .container {
-        border: 1px solid #333;
-        padding: 1em;
-      }
-      .section {
-        background-color: #ebebeb;
+
+      .section-wrapper {
+        margin: -0.5em 0;
         padding: 0.5em;
+        box-shadow: -3px 0 0 red;
+      }
+
+      section {
+        padding: 1em;
+        border-bottom: 1px solid #333;
+        margin: 0 -0.5em;
+      }
+      .even {
+        background-color: #ebebeb;
+      }
+
+      .even article {
+        background-color: white;
+      }
+
+      .odd {
+        background-color: white;
+      }
+
+      .odd article {
+        background-color: #ebebeb;
+      }
+
+      h2, p {
+        margin: 0;
       }
       article {
         background-color: white;
         padding: 1em;
-        box-shadow: 0 1px 0 0 rgba(0,0,0,0.2);
+        border: 1px solid #ebebeb;
       }
-      .section--open {
-        border-top: 3px solid red;
+      .section--open:before {
+        display: block;
+        content: '';
       }
-      .section--close {
-        border-bottom: 3px solid blue;
-        margin-bottom: 1em;
+      .section--close:after {
+        display: block;
+        content: '';
       }
     </style>
   </head>
@@ -29,223 +53,577 @@
     <header>
       <h1>Container Test</h1>
     </header>
-    <main ng-controller="OpenContainerCtrl" dnd-list="data.entries" class="container">
+    <main ng-controller="OpenContainerCtrl" class="container">
       <div
+        ng-switch="i.type"
         ng-repeat="i in data.entries"
-        ng-bind-html="htmlData(i)"
-        dnd-draggable="i"
-        dnd-moved="data.entries.splice($index, 1)"
-        dnd-effect-allowed="move"
-        dnd-disable-if="i.type === 'sectionOpener' || i.type==='sectionCloser'">
+        ng-class="itemType(i.type)"
+        nest-level="{{i.sectionDepth}}"
+      >
+        <section ng-switch-when="sections" class="section">
+          <h2>{{i.title}}</h2>
+          <p><i>{{i.description}}</i></p>
+        </section>
+        <article ng-switch-when="items" class="resource"><img src="http://placehold.it/50x50/" alt="" /><span ng-bind-html="i.citation"></span></article>
       </div>
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/1.4.0/angular-drag-and-drop-lists.min.js"></script>
     <script>
-      angular.module('divvy', ['ngSanitize', 'dndLists'])
+      angular.module('divvy', ['ngSanitize'])
         .controller('OpenContainerCtrl', function($scope, $sce) {
-
-          $scope.data = {
-          entries: [
-            {
-              id: 'i1',
-              type: 'items',
-              resource: 'A2 further pure',
-            },
-            {
-              id: 'i2',
-              type: 'items',
-              resource: 'A2 further pure'
-            },
-            // open 1 section
-            {
-              id: 'x',
-              type: 'sectionOpener',
-              sectionDepth: 0,
-            },
-            {
-              id: 's1',
-              type: 'sections',
-              resource: 'Section 1',
-              sectionDepth: 1
-            },
-            {
-              id: 'i1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 1
-            },
-            {
-              type: 'sectionOpener',
-              sectionDepth: 1,
-            },
-            // open 1 section
-            {
-              id: 's1.1',
-              type: 'sections',
-              resource: 'Section 1.1',
-              sectionDepth: 2,
-            },
-            {
-              id: 'i1.1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 2
-            },
-            // open 1 section
-            {
-              type: 'sectionOpener',
-              sectionDepth: 2,
-            },
-            {
-              id: 's1.1.1',
-              type: 'sections',
-              resource: 'Section 1.1.1',
-              sectionDepth: 3,
-            },
-            {
-              id: 'i1.1.1.1',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 3
-            },
-            {
-              id: 'i1.1.1.2',
-              type: 'items',
-              resource: 'A2 further pure',
-              sectionDepth: 3,
-            },
-            // close 3 sections
-            {
-              type: 'sectionCloser',
-              sectionDepth: 2,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 1,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 0,
-            },
-            // open 1 section
-            {
-              type: 'sectionOpener',
-              sectionDepth: 0,
-            },
-            {
-              id: 's2',
-              type: 'sections',
-              resource: 'Section 2',
-              sectionDepth: 1
-            },
-            {
-              id: 'i2.1',
-              type: 'items',
-              resource: 'A2 furt  her pure',
-              sectionDepth: 1,
-            },
-            {
-              type: 'sectionCloser',
-              sectionDepth: 0,
+          $scope.itemType = (type) => {
+            switch(type) {
+              case 'sectionOpener':
+                return 'section--open';
+              case 'sectionCloser':
+                return 'section--close';
             }
-          ]
-        };
-
-         const wrapInDiv = (item, countSectionsOpenedOrToOpen = 0) => {
-          if(countSectionsOpenedOrToOpen === 0) {
-            return markupGenerator(item);
-          } else if(countSectionsOpenedOrToOpen > 0) {
-            return `<div class="section">
-              ${wrapInDiv(item, countSectionsOpenedOrToOpen-1)}
-            </div>`;
+          };
+          $scope.data = {
+            entries: [
+  {
+    "citation": "  <div data-item-id=\"ITEM-1\" class=\"csl-entry\">Bentham, Susan, (2006) <i>A teaching assistantâ€™s guide to managing behaviour in the classroom</i>.</div>\n",
+    "student_note": "a bookmarked resource",
+    "id": "FB14D76A-11F0-879C-B4F9-4165EC04A69C",
+    "type": "items",
+    "resource": {
+      "resource_type": "Book",
+      "title": "A teaching assistant's guide to managing behaviour in the classroom",
+      "author_names": "Bentham, Susan,",
+      "isbn10": [
+        "0203464281",
+        "0415248337"
+      ],
+      "lcn": "394954",
+      "id": "1",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 0
+  },
+  {
+    "id": "BA8FF974-842D-5739-9D3B-E163CB03B5EB",
+    "sectionDepth": 0,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 1",
+    "id": "BA8FF974-842D-5739-9D3B-E163CB03B5EB",
+    "type": "sections",
+    "children": [
+      {
+        "title": "Section 1.1",
+        "description": "It's a section!",
+        "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+        "type": "sections",
+        "children": [
+          {
+            "title": "Section 1.1.1",
+            "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+            "type": "sections",
+            "links": {}
+          },
+          {
+            "title": "Section 1.1.2",
+            "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+            "type": "sections",
+            "links": {}
+          },
+          {
+            "title": "Section 2.2",
+            "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+            "type": "sections",
+            "links": {}
           }
-         };
-
-         const markupGenerator = (item) => {
-          switch (item.type) {
-            case 'sectionOpener':
-              return '<div class="section--open"></div>';
-            case 'sectionCloser':
-              return '<div class="section--close"></div>';
-            case 'sections':
-              return `<section class="section"></section>`;
-            case 'items':
-              return `<article class="item">${item.resource}</article>`;
-          }
-         };
-
-         const wrapItem = (item) => wrapInDiv(item, (item.sectionDepth || 0));
-         $scope.htmlData = wrapItem;
-
-
-
-          console.log($scope.data);
+        ],
+        "links": {}
+      }
+    ],
+    "links": {},
+    "sectionDepth": 1
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-3\" class=\"csl-entry\">â€˜Teachersâ€™ TV (2007) Primary Management - Head to Headâ€™ (no date b).</div>\n",
+    "student_note": "Teacher's TV video | Nicky Rosewell is featured in the programme Transactional Analysis and introduced TA as an aid to improve behaviour\n\t\t\tin her school, Grange Middle, in Harrow. This system educates children to assess and learn from situations using popular psychology.",
+    "id": "F12E608D-CBFF-8D7F-CF03-1FC4C5A4B114",
+    "type": "items",
+    "container": {
+      "title": "Section 1",
+      "id": "BA8FF974-842D-5739-9D3B-E163CB03B5EB",
+      "type": "sections",
+      "children": [
+        {
+          "title": "Section 1.1",
+          "description": "It's a section!",
+          "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+          "type": "sections",
+          "children": [
+            {
+              "title": "Section 1.1.1",
+              "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+              "type": "sections",
+              "links": {}
+            },
+            {
+              "title": "Section 1.1.2",
+              "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+              "type": "sections",
+              "links": {}
+            },
+            {
+              "title": "Section 2.2",
+              "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+              "type": "sections",
+              "links": {}
+            }
+          ],
+          "links": {}
+        }
+      ],
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "AudioVisualDocument",
+      "title": "Teachers' TV (2007) Primary Management - Head to Head",
+      "id": "2",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 1
+  },
+  {
+    "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+    "sectionDepth": 1,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 1.1",
+    "description": "It's a section!",
+    "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+    "type": "sections",
+    "children": [
+      {
+        "title": "Section 1.1.1",
+        "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+        "type": "sections",
+        "links": {}
+      },
+      {
+        "title": "Section 1.1.2",
+        "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+        "type": "sections",
+        "links": {}
+      },
+      {
+        "title": "Section 2.2",
+        "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+        "type": "sections",
+        "links": {}
+      }
+    ],
+    "links": {},
+    "sectionDepth": 2
+  },
+  {
+    "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+    "sectionDepth": 2,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 1.1.1",
+    "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 3
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-3\" class=\"csl-entry\">â€˜Teachersâ€™ TV (2007) Primary Management - Head to Headâ€™ (no date b).</div>\n",
+    "student_note": "Teacher's TV video | Nicky Rosewell is featured in the programme Transactional Analysis and introduced TA as an aid to improve behaviour\n\t\t\tin her school, Grange Middle, in Harrow. This system educates children to assess and learn from situations using popular psychology.",
+    "id": "982C1072-38D7-CFFA-FFF6-E2608C7816EF",
+    "type": "items",
+    "container": {
+      "title": "Section 1.1.1",
+      "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "AudioVisualDocument",
+      "title": "Teachers' TV (2007) Primary Management - Head to Head",
+      "id": "3",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 3
+  },
+  {
+    "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+    "sectionDepth": 2,
+    "type": "sectionCloser"
+  },
+  {
+    "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+    "sectionDepth": 2,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 1.1.2",
+    "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 3
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-4\" class=\"csl-entry\">Sandra (2002) <i>Behaviour management in the classroomâ€¯: a transactional analysis approach</i>. David Fulton,.</div>\n",
+    "id": "D248676E-5E76-A75D-8B7B-21D57621B9F1",
+    "type": "items",
+    "container": {
+      "title": "Section 1.1.2",
+      "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Behaviour management in the classroom : a transactional analysis approach",
+      "author_names": "Sandra; Jeffery",
+      "isbn10": "1853468266",
+      "lcn": "208917",
+      "id": "4",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 3
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-8\" class=\"csl-entry\">Goleman, Daniel. (2004d) <i>Emotional intelligenceâ€¯: why it can matter more than IQâ€¯; &#38;, Working with emotional intelligence</i>. Bloomsbury,.</div>\n",
+    "id": "4AF63FE4-2C8C-B3C1-43CA-D981BF604253",
+    "type": "items",
+    "container": {
+      "title": "Section 1.1.2",
+      "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Emotional intelligence : why it can matter more than IQ ; &, Working with emotional intelligence",
+      "author_names": "Goleman, Daniel.",
+      "isbn10": "0747574561",
+      "lcn": "432509",
+      "id": "5",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 3
+  },
+  {
+    "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+    "sectionDepth": 2,
+    "type": "sectionCloser"
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-8\" class=\"csl-entry\">Goleman, Daniel. (2004d) <i>Emotional intelligenceâ€¯: why it can matter more than IQâ€¯; &#38;, Working with emotional intelligence</i>. Bloomsbury,.</div>\n",
+    "id": "59CFD248-947E-BEE5-578C-FEA1F80586E1",
+    "type": "items",
+    "container": {
+      "title": "Section 1.1",
+      "description": "It's a section!",
+      "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+      "type": "sections",
+      "children": [
+        {
+          "title": "Section 1.1.1",
+          "id": "94D7BB15-6D0C-2BF8-8ECB-D19C20A5365B",
+          "type": "sections",
+          "links": {}
+        },
+        {
+          "title": "Section 1.1.2",
+          "id": "8ED9173C-258F-ED75-E8D6-1D2D86A0743B",
+          "type": "sections",
+          "links": {}
+        },
+        {
+          "title": "Section 2.2",
+          "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+          "type": "sections",
+          "links": {}
+        }
+      ],
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Emotional intelligence : why it can matter more than IQ ; &, Working with emotional intelligence",
+      "author_names": "Goleman, Daniel.",
+      "isbn10": "0747574561",
+      "lcn": "432509",
+      "id": "6",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 2
+  },
+  {
+    "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+    "sectionDepth": 2,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 2.2",
+    "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 3
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-8\" class=\"csl-entry\">Goleman, Daniel. (2004d) <i>Emotional intelligenceâ€¯: why it can matter more than IQâ€¯; &#38;, Working with emotional intelligence</i>. Bloomsbury,.</div>\n",
+    "id": "702E0A96-1527-C20E-5E95-430B26FAAE76",
+    "type": "items",
+    "container": {
+      "title": "Section 2.2",
+      "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Emotional intelligence : why it can matter more than IQ ; &, Working with emotional intelligence",
+      "author_names": "Goleman, Daniel.",
+      "isbn10": "0747574561",
+      "lcn": "432509",
+      "id": "7",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 3
+  },
+  {
+    "id": "D2AA5071-4760-F7E4-45F1-2F9862F69E6D",
+    "sectionDepth": 2,
+    "type": "sectionCloser"
+  },
+  {
+    "id": "F547B403-FF66-0131-10C8-131BF0E951DD",
+    "sectionDepth": 1,
+    "type": "sectionCloser"
+  },
+  {
+    "id": "BA8FF974-842D-5739-9D3B-E163CB03B5EB",
+    "sectionDepth": 0,
+    "type": "sectionCloser"
+  },
+  {
+    "id": "6DC77C93-D912-22D3-1E33-BE2D67707588",
+    "sectionDepth": 0,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 2",
+    "id": "6DC77C93-D912-22D3-1E33-BE2D67707588",
+    "type": "sections",
+    "children": [
+      {
+        "title": "Section 2.1",
+        "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+        "type": "sections",
+        "links": {}
+      }
+    ],
+    "links": {},
+    "sectionDepth": 1
+  },
+  {
+    "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+    "sectionDepth": 1,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 2.1",
+    "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 2
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-8\" class=\"csl-entry\">Goleman, Daniel. (2004d) <i>Emotional intelligenceâ€¯: why it can matter more than IQâ€¯; &#38;, Working with emotional intelligence</i>. Bloomsbury,.</div>\n",
+    "id": "0ED8013A-AA65-0D48-1243-AB85278AB87F",
+    "type": "items",
+    "container": {
+      "title": "Section 2.1",
+      "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Emotional intelligence : why it can matter more than IQ ; &, Working with emotional intelligence",
+      "author_names": "Goleman, Daniel.",
+      "isbn10": "0747574561",
+      "lcn": "432509",
+      "id": "8",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 2
+  },
+  {
+    "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+    "sectionDepth": 1,
+    "type": "sectionCloser"
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-9\" class=\"csl-entry\">Cross, Melanie. and NetLibrary, Inc. (2004) <i>Children with emotional and behavioural difficulties and communication problemsâ€¯: there is always a reason</i>. Jessica Kingsley Publishers,.</div>\n",
+    "student_note": "Also available as an electronic book | Click on 'log in' and then 'Athens log in'",
+    "id": "FC115483-CD8D-6EC6-CE92-1D971B8CB142",
+    "type": "items",
+    "container": {
+      "title": "Section 2",
+      "id": "6DC77C93-D912-22D3-1E33-BE2D67707588",
+      "type": "sections",
+      "children": [
+        {
+          "title": "Section 2.1",
+          "id": "5AFB88E1-792E-25FA-ACC7-077115930E19",
+          "type": "sections",
+          "links": {}
+        }
+      ],
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Children with emotional and behavioural difficulties and communication problems : there is always a reason",
+      "author_names": "Cross, Melanie.; NetLibrary, Inc.",
+      "isbn10": [
+        "1423709756",
+        "1843101351"
+      ],
+      "lcn": "387534",
+      "id": "9",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 1
+  },
+  {
+    "id": "6DC77C93-D912-22D3-1E33-BE2D67707588",
+    "sectionDepth": 0,
+    "type": "sectionCloser"
+  },
+  {
+    "id": "60CEF704-30AA-93A3-28B2-441DEAC72C3A",
+    "sectionDepth": 0,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 3",
+    "id": "60CEF704-30AA-93A3-28B2-441DEAC72C3A",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 1
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-11\" class=\"csl-entry\">Cooper, Vanessa. and National Childrenâ€™s Bureau, (2005b) <i>Support staff in schoolsâ€¯: promoting the emotional and social development of children and young people</i>. National Childrenâ€™s Bureau,.</div>\n",
+    "id": "B9E643AA-094F-CDD1-FE97-87FE2F544141",
+    "type": "items",
+    "container": {
+      "title": "Section 3",
+      "id": "60CEF704-30AA-93A3-28B2-441DEAC72C3A",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Support staff in schools : promoting the emotional and social development of children and young people",
+      "author_names": "Cooper, Vanessa.; National Children's Bureau,; National Children's Bureau.",
+      "isbn10": "1904787525",
+      "lcn": "456771",
+      "id": "10",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 1
+  },
+  {
+    "id": "60CEF704-30AA-93A3-28B2-441DEAC72C3A",
+    "sectionDepth": 0,
+    "type": "sectionCloser"
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-11\" class=\"csl-entry\">Cooper, Vanessa. and National Childrenâ€™s Bureau, (2005b) <i>Support staff in schoolsâ€¯: promoting the emotional and social development of children and young people</i>. National Childrenâ€™s Bureau,.</div>\n",
+    "id": "DC7D476B-A8A9-8D6F-7ECD-0276EB232360",
+    "type": "items",
+    "resource": {
+      "resource_type": "Book",
+      "title": "Support staff in schools : promoting the emotional and social development of children and young people",
+      "author_names": "Cooper, Vanessa.; National Children's Bureau,; National Children's Bureau.",
+      "isbn10": "1904787525",
+      "lcn": "456771",
+      "id": "11",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 0
+  },
+  {
+    "id": "95B5018E-6519-6E0F-8D17-3842D339ADDB",
+    "sectionDepth": 0,
+    "type": "sectionOpener"
+  },
+  {
+    "title": "Section 4",
+    "id": "95B5018E-6519-6E0F-8D17-3842D339ADDB",
+    "type": "sections",
+    "links": {},
+    "sectionDepth": 1
+  },
+  {
+    "citation": "  <div data-item-id=\"ITEM-12\" class=\"csl-entry\">Clarke, Jean Illsley. and Dawson, Connie. (1989) <i>Growing up againâ€¯: parenting ourselves, parenting our children</i>. Hazelden,.</div>\n",
+    "id": "1FEA80D5-315C-DAA2-17BD-E66FFFB10668",
+    "type": "items",
+    "container": {
+      "title": "Section 4",
+      "id": "95B5018E-6519-6E0F-8D17-3842D339ADDB",
+      "type": "sections",
+      "links": {}
+    },
+    "resource": {
+      "resource_type": "Book",
+      "title": "Growing up again : parenting ourselves, parenting our children",
+      "author_names": "Clarke, Jean Illsley.; Dawson, Connie.",
+      "isbn10": "0894865668",
+      "lcn": "181975",
+      "id": "12",
+      "type": "resources",
+      "links": {}
+    },
+    "sectionDepth": 1
+  },
+  {
+    "id": "95B5018E-6519-6E0F-8D17-3842D339ADDB",
+    "sectionDepth": 0,
+    "type": "sectionCloser"
+  }
+]
+            };
         })
-        .directive('sectionWrapper', function() {
-          const html = '<div>lol</div>';
-
+        .directive('nestLevel', function() {
           return {
             restrict: 'A',
-            replace: true,
             scope: {
-              count: '@'
-            },
-            link: function(scope, element) {
-              wrapInDiv = (html, count) => {
-                if(count === 0) {
-                  return html;
-                } else {
-                  return `<div>${wrapInDiv(html, count-1)}</div>`;
-                }
-              }
-            }
-          };
-        })
-        .directive('openContainer', function() {
-          return {
-            restrict: 'E',
-            replace: false,
-            scope: {
-              count: '@'
+              count: '@nestLevel',
             },
             link: function(scope, element, attrs) {
-              const count = scope.count;
-              let markup = '';
-
-              for (var i = 0; i < scope.count; i++) {
-                markup += `<div class="container" data-level=${i}><ul>
-                <li>list 1</li>
-                <li>list 2</li>
-                <li>list 3</li>
-                <li>list 4</li>
-                <li>list 5</li>
-                </ul>`;
+              let nestLevel = 0;
+              while (nestLevel < scope.count) {
+                const oddOrEven = nestLevel % 2 === 0 ? "even" : "odd";
+                element.wrap(`<div class="section-wrapper ${oddOrEven}"></div>`);
+                nestLevel++;
               }
-              console.log(markup);
-              element.html(markup);
-            }
-          };
-        })
-        .directive('closeContainer', function() {
-          return {
-            restrict: 'E',
-            replace: false,
-            scope: {
-              count: '@'
-            },
-            link: function(scope, element, attrs) {
-              const count = scope.count;
-              let markup = '';
-
-              for (var i = count; i > 0; i--) {
-                markup += `</div data-level=${i-1}>`;
-              }
-              console.log(markup);
-
-              element.html(markup);
             }
           };
         });
